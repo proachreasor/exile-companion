@@ -1,0 +1,18 @@
+{
+  "name": "exile-companion",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/api",
+    "packages/contracts"
+  ],
+  "scripts": {
+    "dev": "npm run build --workspace=@exile-companion/contracts && concurrently -k -n api,web \"npm run dev --workspace=@exile-companion/api\" \"npm run dev --workspace=@exile-companion/web\"",
+    "typecheck": "npm run build --workspace=@exile-companion/contracts && npm run typecheck --workspace=@exile-companion/web && npm run typecheck --workspace=@exile-companion/api",
+    "build": "npm run build --workspace=@exile-companion/contracts && npm run build --workspace=@exile-companion/web && npm run build --workspace=@exile-companion/api",
+    "test": "npm run build --workspace=@exile-companion/contracts && npm run test --workspace=@exile-companion/web && npm run test --workspace=@exile-companion/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

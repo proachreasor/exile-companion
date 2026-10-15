@@ -10,6 +10,7 @@
     "test": "npm run build && node --test"
   },
   "dependencies": {
+    "@exile-companion/contracts": "^0.1.0",
     "express": "^5.1.0"
   },
   "devDependencies": {

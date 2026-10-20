@@ -1,8 +1,40 @@
+
+# Node.js / TypeScript
 node_modules/
 dist/
 coverage/
+npm-debug.log*
+
+# Environment variables
 .env
 .env.*
 !.env.example
-npm-debug.log*
+
+# Copilot
 .github/copilot-instructions.md
+
+# ==========================================
+# WPF / .NET Desktop
+# ==========================================
+
+# Visual Studio local settings
+/apps/desktop/.vs/
+/apps/desktop/ExileCompanion.Desktop/.vs/
+
+# Build outputs
+/apps/desktop/**/bin/
+/apps/desktop/**/obj/
+/apps/desktop/**/TestResults/
+
+# User-specific project settings
+/apps/desktop/**/*.csproj.user
+/apps/desktop/**/*.suo
+/apps/desktop/**/*.user
+
+# Local publishing outputs
+/apps/desktop/**/publish/
+
+# Rider / ReSharper (if used)
+/apps/desktop/**/.idea/
+/apps/desktop/**/_ReSharper*/
+/apps/desktop/**/*.DotSettings.user

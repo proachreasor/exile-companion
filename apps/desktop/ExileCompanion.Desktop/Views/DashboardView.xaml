@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="ExileCompanion.Desktop.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#141B26">
+    <StackPanel Margin="24">
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0"
+                   Text="Dashboard"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="#F2D39C"
+                   Margin="0,0,0,24"/>
+
+        <TextBlock Text="Total Characters"
+                 Foreground="White"
+                 FontSize="16"/>
+        
+        <TextBlock Text="{Binding CharacterCount}"
+                 Foreground="#F2D39C"
+                 FontSize="16"/>
+
+        <!-- Highest Char lvl -->
+        <TextBlock Text="{Binding HighestCharacterLevel, StringFormat='Highest Level: {0}', FallbackValue='0'}" 
+                       Foreground="#ACB8C8"/>
+
+
+    </StackPanel>
+</UserControl>

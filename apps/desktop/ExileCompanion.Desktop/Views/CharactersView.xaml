@@ -1,0 +1,67 @@
+﻿<UserControl x:Class="ExileCompanion.Desktop.Views.CharactersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ExileCompanion.Desktop.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Summary -->
+        <TextBlock Grid.Row="0" Text="{Binding StatusMessage}"
+                    Foreground="#ACBBC8"
+                    Margin="0,0,0,16"/>
+
+        <!-- Character List-->
+        <ListBox Grid.Row="1"
+         ItemsSource="{Binding Characters}"
+         SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
+         Background="#253143"
+         Foreground="White"
+         BorderThickness="0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Margin="8">
+
+                        <TextBlock Text="{Binding Name}"
+                           Foreground="White"
+                           FontWeight="Bold"
+                           FontSize="16"/>
+
+                        <TextBlock Text="{Binding CharacterClass}"
+                           Foreground="#ACB8C8"/>
+
+                        <TextBlock Text="{Binding Level, StringFormat='Level {0}'}"
+                                   Foreground="White"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2">
+            <TextBlock Text="Selected Character"
+               Foreground="#F2D39C"
+               FontSize="16"
+               FontWeight="Bold"/>
+            <TextBlock Text="{Binding SelectedCharacter.Name, TargetNullValue='No character Selected', FallbackValue='No character Selected'}"
+               Foreground="White"
+               Margin="0,8,0,0"/>
+            <TextBlock Text="{Binding SelectedCharacter.CharacterClass}"
+               Foreground="#ACB8C8"/>
+        </StackPanel>
+
+        <!-- Refresh Button -->
+        <Button Grid.Row="3"
+         Content="Refresh Characters"
+         Command="{Binding RefreshCharactersCommand}"
+         Height="40"
+         Margin="0,16,0,0"/>
+    </Grid>
+</UserControl>

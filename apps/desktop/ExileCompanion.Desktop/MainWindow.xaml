@@ -1,12 +1,40 @@
 ﻿<Window x:Class="ExileCompanion.Desktop.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExileCompanion.Desktop"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        xmlns:views="clr-namespace:ExileCompanion.Desktop.Views"
+        Title="Exile Companion"
+        Width="900"
+        Height="650"
+        MinWidth="600"
+        MinHeight="450">
 
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Side Bar -->
+        <StackPanel Grid.Column="0" Background="#202A39">
+            <TextBlock Text="Exile Companion" 
+                       Foreground="#F2D39C"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Margin="16,24"/>
+
+            <Button Content="Dashboard"
+                    Command="{Binding NavigateToDashboardCommand}"
+                    Height="44"
+                    Margin="12,8"/>
+
+            <Button Content="Characters"
+                    Command="{Binding NavigateToCharactersCommand}"
+                    Height="44"
+                    Margin="12,8"/>
+            
+        </StackPanel>
+        
+        <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}"/>
     </Grid>
+
 </Window>

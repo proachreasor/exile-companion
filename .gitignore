@@ -38,3 +38,4 @@ npm-debug.log*
 /apps/desktop/**/.idea/
 /apps/desktop/**/_ReSharper*/
 /apps/desktop/**/*.DotSettings.user
+/.vs/*

@@ -1,24 +1,19 @@
-﻿using System.Text;
+﻿using ExileCompanion.Desktop.Services;
+using ExileCompanion.Desktop.ViewModels;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
-namespace ExileCompanion.Desktop
+namespace ExileCompanion.Desktop;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
-    public partial class MainWindow : Window
+    public MainWindow(MainViewModel mainViewModel)
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+
+        DataContext = mainViewModel;
+
     }
 }

@@ -2,8 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ExileCompanion.Desktop"
-             StartupUri="MainWindow.xaml">
+             xmlns:vm="clr-namespace:ExileCompanion.Desktop.ViewModels"
+             xmlns:views="clr-namespace:ExileCompanion.Desktop.Views">
     <Application.Resources>
-         
+
+        <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+            <views:DashboardView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:CharactersViewModel}">
+            <views:CharactersView/>
+        </DataTemplate>
+
     </Application.Resources>
 </Application>

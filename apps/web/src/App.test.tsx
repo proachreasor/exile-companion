@@ -1,50 +1,42 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import App from "./App";
 import {
-  createCharacter,
-  jsonResponse,
-  renderWithRouter,
-} from "./test/characterTestUtils";
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import type { Character, GameId } from "@exile-companion/contracts";
+import App from "./App";
+import { createCharacter, renderWithRouter } from "./test/characterTestUtils";
+
+const repositoryMock = vi.hoisted(() => ({
+  getCharacters: vi.fn(),
+  getCharacter: vi.fn(),
+}));
+
+vi.mock("./features/characters/characterRepositorySelection", () => ({
+  characterRepository: repositoryMock,
+}));
 
 beforeEach(() => {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(async (input: RequestInfo | URL) => {
-      const path = String(input);
-      const match = path.match(
-        /^\/api\/games\/(poe[12])\/characters(?:\/(.+))?$/,
-      );
-      const gameId = match?.[1];
-      const characterId = match?.[2];
-
-      if (gameId !== "poe1" && gameId !== "poe2") {
-        return jsonResponse({ error: { code: "NOT_FOUND" } }, 404);
-      }
-
+  repositoryMock.getCharacters.mockReset();
+  repositoryMock.getCharacter.mockReset();
+  repositoryMock.getCharacters.mockImplementation(async (gameId: GameId) => [
+    createCharacter(gameId),
+  ]);
+  repositoryMock.getCharacter.mockImplementation(
+    async (gameId: GameId, characterId: string) => {
       const character = createCharacter(gameId);
-      if (characterId) {
-        return characterId === character.id
-          ? jsonResponse(character)
-          : jsonResponse(
-              {
-                error: {
-                  code: "CHARACTER_NOT_FOUND",
-                  message: "Character not found.",
-                },
-              },
-              404,
-            );
-      }
-
-      return jsonResponse([character]);
-    }),
+      return character.id === characterId ? character : null;
+    },
   );
 });
 
 afterEach(() => {
-  vi.unstubAllGlobals();
+  vi.clearAllMocks();
 });
 
 describe("game routes", () => {
@@ -119,6 +111,16 @@ describe("game routes", () => {
     expect(
       screen.queryByRole("heading", { name: "Path of Exile 2 Character" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("uses the current game repository and forwards query cancellation signals", async () => {
+    renderWithRouter(<App />, "/poe2/characters");
+
+    expect(await screen.findByText("FrostSage")).toBeInTheDocument();
+    expect(repositoryMock.getCharacters).toHaveBeenCalledWith(
+      "poe2",
+      expect.any(AbortSignal),
+    );
   });
 
   it.each(["/poe3", "/poe1/inventory", "/unmatched/path"])(

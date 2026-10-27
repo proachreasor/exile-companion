@@ -1,0 +1,12 @@
+{
+  "name": "@exile-companion/character-data",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./characters.d.ts",
+      "import": "./characters.json"
+    }
+  }
+}

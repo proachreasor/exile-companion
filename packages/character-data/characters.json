@@ -1,0 +1,38 @@
+{
+  "poe1": [
+    {
+      "id": "poe1-marauder-01",
+      "name": "AshenMarauder",
+      "gameId": "poe1",
+      "characterClass": "Marauder",
+      "level": 92,
+      "league": "Standard"
+    },
+    {
+      "id": "poe1-ranger-01",
+      "name": "VerdantArrow",
+      "gameId": "poe1",
+      "characterClass": "Ranger",
+      "level": 84,
+      "league": "Standard"
+    }
+  ],
+  "poe2": [
+    {
+      "id": "poe2-sorceress-01",
+      "name": "FrostboundSage",
+      "gameId": "poe2",
+      "characterClass": "Sorceress",
+      "level": 76,
+      "league": "Standard"
+    },
+    {
+      "id": "poe2-warrior-01",
+      "name": "StoneSentinel",
+      "gameId": "poe2",
+      "characterClass": "Warrior",
+      "level": 68,
+      "league": "Standard"
+    }
+  ]
+}

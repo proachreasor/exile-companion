@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { GameId } from "@exile-companion/contracts";
-import { getCharacter, getCharacters } from "../../api/characters";
+import { characterRepository } from "./characterRepositorySelection";
 
 export const characterQueryKeys = {
   list: (gameId: GameId) => ["characters", gameId, "list"] as const,
@@ -11,7 +11,7 @@ export const characterQueryKeys = {
 export function useCharacters(gameId: GameId) {
   return useQuery({
     queryKey: characterQueryKeys.list(gameId),
-    queryFn: ({ signal }) => getCharacters(gameId, signal),
+    queryFn: ({ signal }) => characterRepository.getCharacters(gameId, signal),
   });
 }
 
@@ -25,7 +25,7 @@ export function useCharacter(
       if (!characterId) {
         throw new Error("A character ID is required.");
       }
-      return getCharacter(gameId, characterId, signal);
+      return characterRepository.getCharacter(gameId, characterId, signal);
     },
     enabled: Boolean(characterId),
   });

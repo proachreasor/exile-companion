@@ -526,7 +526,7 @@ describe("character list page", () => {
 
     await screen.findByText(characters[0]!.name);
     const favoriteButton = await screen.findByRole("button", {
-      name: `Add ${characters[0]!.name} to favorites`,
+      name: `Favorite ${characters[0]!.name}`,
     });
     await waitFor(() => expect(favoriteButton).toBeEnabled());
     const characterCache = queryClient.getQueryData(
@@ -535,11 +535,7 @@ describe("character list page", () => {
 
     await user.click(favoriteButton);
 
-    expect(
-      await screen.findByRole("button", {
-        name: `Remove ${characters[0]!.name} from favorites`,
-      }),
-    ).toHaveAttribute("aria-pressed", "true");
+    expect(favoriteButton).toHaveAttribute("aria-pressed", "true");
     expect(
       queryClient.getQueryData(favoriteQueryKeys.forGame("poe1")),
     ).toEqual([characters[0]!.id]);
@@ -567,7 +563,7 @@ describe("character list page", () => {
     renderWithRouter(<App />, "/poe1/characters");
 
     const poe1Button = await screen.findByRole("button", {
-      name: "Remove FirstGameHero from favorites",
+      name: "Favorite FirstGameHero",
     });
     expect(poe1Button).toHaveAttribute("aria-pressed", "true");
     await user.selectOptions(
@@ -576,7 +572,7 @@ describe("character list page", () => {
     );
 
     const poe2Button = await screen.findByRole("button", {
-      name: "Add SecondGameHero to favorites",
+      name: "Favorite SecondGameHero",
     });
     expect(poe2Button).toHaveAttribute("aria-pressed", "false");
     expect(favoritesRepositoryMock.getFavoriteIds).toHaveBeenCalledWith("poe2");
@@ -590,20 +586,16 @@ describe("character list page", () => {
 
     await user.click(
       await screen.findByRole("button", {
-        name: "Add EmberKnight to favorites",
+        name: "Favorite EmberKnight",
       }),
     );
     expect(
-      await screen.findByRole("button", {
-        name: "Remove EmberKnight from favorites",
-      }),
+      screen.getByRole("button", { name: "Favorite EmberKnight" }),
     ).toHaveAttribute("aria-pressed", "true");
 
     await user.click(screen.getByRole("link", { name: "EmberKnight" }));
     expect(
-      await screen.findByRole("button", {
-        name: "Remove EmberKnight from favorites",
-      }),
+      await screen.findByRole("button", { name: "Favorite EmberKnight" }),
     ).toHaveAttribute("aria-pressed", "true");
 
     await user.selectOptions(
@@ -617,9 +609,7 @@ describe("character list page", () => {
     );
 
     expect(
-      await screen.findByRole("button", {
-        name: "Remove EmberKnight from favorites",
-      }),
+      await screen.findByRole("button", { name: "Favorite EmberKnight" }),
     ).toHaveAttribute("aria-pressed", "true");
   });
 
@@ -637,7 +627,7 @@ describe("character list page", () => {
     renderWithRouter(<App />, "/poe1/characters");
 
     const buttons = await screen.findAllByRole("button", {
-      name: "Add Alpha to favorites",
+      name: "Favorite Alpha",
     });
     const firstButton = buttons[0]!;
     const secondButton = buttons[1]!;
@@ -663,7 +653,7 @@ describe("character list page", () => {
     renderWithRouter(<App />, "/poe1/characters");
 
     const favoriteButton = await screen.findByRole("button", {
-      name: "Add EmberKnight to favorites",
+      name: "Favorite EmberKnight",
     });
     await waitFor(() => expect(favoriteButton).toBeEnabled());
     await user.click(favoriteButton);
@@ -705,18 +695,18 @@ describe("character detail page", () => {
 
     expect(
       await screen.findByRole("button", {
-        name: `Remove ${character.name} from favorites`,
+        name: `Favorite ${character.name}`,
       }),
     ).toHaveAttribute("aria-pressed", "true");
     await user.click(
       screen.getByRole("button", {
-        name: `Remove ${character.name} from favorites`,
+        name: `Favorite ${character.name}`,
       }),
     );
 
     expect(
       await screen.findByRole("button", {
-        name: `Add ${character.name} to favorites`,
+        name: `Favorite ${character.name}`,
       }),
     ).toHaveAttribute("aria-pressed", "false");
     expect(

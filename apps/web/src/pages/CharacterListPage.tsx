@@ -5,6 +5,12 @@ import {
   deriveCharacterList,
   type CharacterSort,
 } from "../features/characters/characterListUtils";
+import CharacterFavoriteButton from "../features/characters/CharacterFavoriteButton";
+import {
+  useFavoriteIds,
+  useIsFavoriteMutationPending,
+  useSetFavorite,
+} from "../features/characters/favoriteQueries";
 import { useCharacters } from "../features/characters/characterQueries";
 
 function isCharacterSort(value: string): value is CharacterSort {
@@ -20,6 +26,9 @@ function CharacterListPage() {
   const gameId = useOutletContext<GameId>();
   const gameName = gameId === "poe1" ? "Path of Exile 1" : "Path of Exile 2";
   const query = useCharacters(gameId);
+  const favoritesQuery = useFavoriteIds(gameId);
+  const favoriteMutation = useSetFavorite(gameId);
+  const favoriteMutationPending = useIsFavoriteMutationPending(gameId);
   const [search, setSearch] = useState("");
   const [characterClass, setCharacterClass] = useState("");
   const [league, setLeague] = useState("");
@@ -50,6 +59,12 @@ function CharacterListPage() {
       {query.isPending && <p role="status">Loading characters...</p>}
       {query.isError && (
         <p role="alert">Unable to load characters. Please try again.</p>
+      )}
+      {favoritesQuery.isError && (
+        <p role="alert">Unable to load favorites. Please try again.</p>
+      )}
+      {favoriteMutation.isError && (
+        <p role="alert">Unable to update favorites. Please try again.</p>
       )}
       {query.isSuccess && characters.length === 0 && (
         <p>No characters found.</p>
@@ -138,6 +153,25 @@ function CharacterListPage() {
                   >
                     {character.name}
                   </Link>
+                  <CharacterFavoriteButton
+                    characterName={character.name}
+                    isFavorite={
+                      favoritesQuery.data?.includes(character.id) ?? false
+                    }
+                    disabled={
+                      favoritesQuery.isPending ||
+                      favoritesQuery.isError ||
+                      favoriteMutationPending
+                    }
+                    onToggle={() =>
+                      favoriteMutation.mutate({
+                        characterId: character.id,
+                        isFavorite: !favoritesQuery.data?.includes(
+                          character.id,
+                        ),
+                      })
+                    }
+                  />
                   <span>
                     {" "}
                     — {character.characterClass}, level {character.level},{" "}

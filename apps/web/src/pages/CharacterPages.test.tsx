@@ -10,6 +10,8 @@ import {
 } from "vitest";
 import type { Character, GameId } from "@exile-companion/contracts";
 import App from "../App";
+import { characterQueryKeys } from "../features/characters/characterQueries";
+import { favoriteQueryKeys } from "../features/characters/favoriteQueries";
 import { createCharacter, renderWithRouter } from "../test/characterTestUtils";
 
 const repositoryMock = vi.hoisted(() => ({
@@ -17,8 +19,22 @@ const repositoryMock = vi.hoisted(() => ({
   getCharacter: vi.fn(),
 }));
 
+const favoriteState = vi.hoisted(() => ({
+  poe1: [] as string[],
+  poe2: [] as string[],
+}));
+
+const favoritesRepositoryMock = vi.hoisted(() => ({
+  getFavoriteIds: vi.fn(),
+  setFavorite: vi.fn(),
+}));
+
 vi.mock("../features/characters/characterRepositorySelection", () => ({
   characterRepository: repositoryMock,
+}));
+
+vi.mock("../features/characters/favoriteRepositorySelection", () => ({
+  favoritesRepository: favoritesRepositoryMock,
 }));
 
 function setRepositoryCharacters(characters: Character[]) {
@@ -36,8 +52,27 @@ function setRepositoryCharacters(characters: Character[]) {
 }
 
 beforeEach(() => {
+  favoriteState.poe1 = [];
+  favoriteState.poe2 = [];
   repositoryMock.getCharacters.mockReset();
   repositoryMock.getCharacter.mockReset();
+  favoritesRepositoryMock.getFavoriteIds.mockReset();
+  favoritesRepositoryMock.setFavorite.mockReset();
+  favoritesRepositoryMock.getFavoriteIds.mockImplementation(
+    (gameId: GameId) => [...favoriteState[gameId]],
+  );
+  favoritesRepositoryMock.setFavorite.mockImplementation(
+    (gameId: GameId, characterId: string, isFavorite: boolean) => {
+      const current = new Set(favoriteState[gameId]);
+      if (isFavorite) {
+        current.add(characterId);
+      } else {
+        current.delete(characterId);
+      }
+      favoriteState[gameId] = Array.from(current);
+      return [...favoriteState[gameId]];
+    },
+  );
   setRepositoryCharacters([
     createCharacter("poe1"),
     createCharacter("poe2"),
@@ -482,6 +517,163 @@ describe("character list page", () => {
     expect(await screen.findByText("FrostSage")).toBeInTheDocument();
     await waitFor(() => expect(poe1Signal?.aborted).toBe(true));
   });
+
+  it("updates the game-scoped favorites cache without changing character data", async () => {
+    const characters = [createCharacter("poe1")];
+    setRepositoryCharacters(characters);
+    const user = userEvent.setup();
+    const { queryClient } = renderWithRouter(<App />, "/poe1/characters");
+
+    await screen.findByText(characters[0]!.name);
+    const favoriteButton = await screen.findByRole("button", {
+      name: `Add ${characters[0]!.name} to favorites`,
+    });
+    await waitFor(() => expect(favoriteButton).toBeEnabled());
+    const characterCache = queryClient.getQueryData(
+      characterQueryKeys.list("poe1"),
+    );
+
+    await user.click(favoriteButton);
+
+    expect(
+      await screen.findByRole("button", {
+        name: `Remove ${characters[0]!.name} from favorites`,
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      queryClient.getQueryData(favoriteQueryKeys.forGame("poe1")),
+    ).toEqual([characters[0]!.id]);
+    expect(
+      queryClient.getQueryData(favoriteQueryKeys.forGame("poe2")),
+    ).toBeUndefined();
+    expect(
+      queryClient.getQueryData(characterQueryKeys.list("poe1")),
+    ).toBe(characterCache);
+    expect(favoritesRepositoryMock.setFavorite).toHaveBeenCalledWith(
+      "poe1",
+      characters[0]!.id,
+      true,
+    );
+  });
+
+  it("keeps favorite identities independent when character IDs match across games", async () => {
+    const characters = [
+      createCharacter("poe1", { id: "shared-id", name: "FirstGameHero" }),
+      createCharacter("poe2", { id: "shared-id", name: "SecondGameHero" }),
+    ];
+    setRepositoryCharacters(characters);
+    favoriteState.poe1 = ["shared-id"];
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/poe1/characters");
+
+    const poe1Button = await screen.findByRole("button", {
+      name: "Remove FirstGameHero from favorites",
+    });
+    expect(poe1Button).toHaveAttribute("aria-pressed", "true");
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Game" }),
+      "poe2",
+    );
+
+    const poe2Button = await screen.findByRole("button", {
+      name: "Add SecondGameHero to favorites",
+    });
+    expect(poe2Button).toHaveAttribute("aria-pressed", "false");
+    expect(favoritesRepositoryMock.getFavoriteIds).toHaveBeenCalledWith("poe2");
+  });
+
+  it("keeps favorite state synchronized between list, detail, and game navigation", async () => {
+    const characters = [createCharacter("poe1"), createCharacter("poe2")];
+    setRepositoryCharacters(characters);
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/poe1/characters");
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Add EmberKnight to favorites",
+      }),
+    );
+    expect(
+      await screen.findByRole("button", {
+        name: "Remove EmberKnight from favorites",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("link", { name: "EmberKnight" }));
+    expect(
+      await screen.findByRole("button", {
+        name: "Remove EmberKnight from favorites",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Game" }),
+      "poe2",
+    );
+    await screen.findByRole("heading", { name: "Path of Exile 2 Characters" });
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Game" }),
+      "poe1",
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: "Remove EmberKnight from favorites",
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("disables all favorite actions while a mutation is pending", async () => {
+    const characters = poe1Characters().slice(0, 2);
+    setRepositoryCharacters(characters);
+    let resolveMutation!: (favoriteIds: string[]) => void;
+    favoritesRepositoryMock.setFavorite.mockImplementation(
+      () =>
+        new Promise<string[]>((resolve) => {
+          resolveMutation = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/poe1/characters");
+
+    const buttons = await screen.findAllByRole("button", {
+      name: "Add Alpha to favorites",
+    });
+    const firstButton = buttons[0]!;
+    const secondButton = buttons[1]!;
+    await waitFor(() => expect(firstButton).toBeEnabled());
+    await user.click(firstButton);
+
+    await waitFor(() => {
+      expect(firstButton).toBeDisabled();
+      expect(secondButton).toBeDisabled();
+    });
+    expect(favoritesRepositoryMock.setFavorite).toHaveBeenCalledTimes(1);
+
+    resolveMutation(["z-id"]);
+    await waitFor(() => expect(firstButton).toBeEnabled());
+  });
+
+  it("shows a predictable message when favorite mutation fails", async () => {
+    setRepositoryCharacters([createCharacter("poe1")]);
+    favoritesRepositoryMock.setFavorite.mockRejectedValue(
+      new Error("private storage details"),
+    );
+    const user = userEvent.setup();
+    renderWithRouter(<App />, "/poe1/characters");
+
+    const favoriteButton = await screen.findByRole("button", {
+      name: "Add EmberKnight to favorites",
+    });
+    await waitFor(() => expect(favoriteButton).toBeEnabled());
+    await user.click(favoriteButton);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Unable to update favorites. Please try again.",
+    );
+    expect(screen.queryByText("private storage details")).not.toBeInTheDocument();
+    await waitFor(() => expect(favoriteButton).toBeEnabled());
+  });
 });
 
 describe("character detail page", () => {
@@ -498,6 +690,42 @@ describe("character detail page", () => {
       "poe1",
       character.id,
       expect.any(AbortSignal),
+    );
+  });
+
+  it("shows favorite state and updates it from character details", async () => {
+    const character = createCharacter("poe2");
+    setRepositoryCharacters([character]);
+    favoriteState.poe2 = [character.id];
+    const user = userEvent.setup();
+    const { queryClient } = renderWithRouter(
+      <App />,
+      `/poe2/characters/${character.id}`,
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: `Remove ${character.name} from favorites`,
+      }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await user.click(
+      screen.getByRole("button", {
+        name: `Remove ${character.name} from favorites`,
+      }),
+    );
+
+    expect(
+      await screen.findByRole("button", {
+        name: `Add ${character.name} to favorites`,
+      }),
+    ).toHaveAttribute("aria-pressed", "false");
+    expect(
+      queryClient.getQueryData(favoriteQueryKeys.forGame("poe2")),
+    ).toEqual([]);
+    expect(favoritesRepositoryMock.setFavorite).toHaveBeenCalledWith(
+      "poe2",
+      character.id,
+      false,
     );
   });
 

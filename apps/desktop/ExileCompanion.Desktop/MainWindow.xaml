@@ -14,7 +14,7 @@
             <ColumnDefinition Width="220"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        
+
         <!-- Side Bar -->
         <StackPanel Grid.Column="0" Background="#202A39">
             <TextBlock Text="Exile Companion" 
@@ -22,7 +22,18 @@
                        FontSize="18"
                        FontWeight="Bold"
                        Margin="16,24"/>
+            <TextBlock Text="Select Game"
+                       Foreground="#F2D39C"
+                       Margin="16,8,16,4"/>
 
+            <ComboBox ItemsSource="{Binding AvailableGames}"
+                      SelectedItem="{Binding SelectedGame, Mode=TwoWay}"
+                      Margin="12,4,12,16"
+                      Height="32"/>
+            <TextBlock Text="{Binding GameLoadingError}"
+                        Foreground="OrangeRed"
+                        TextWrapping="Wrap"
+                        Margin="12,0,12,8"/>
             <Button Content="Dashboard"
                     Command="{Binding NavigateToDashboardCommand}"
                     Height="44"
@@ -32,9 +43,9 @@
                     Command="{Binding NavigateToCharactersCommand}"
                     Height="44"
                     Margin="12,8"/>
-            
+
         </StackPanel>
-        
+
         <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}"/>
     </Grid>
 

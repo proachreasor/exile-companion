@@ -1,0 +1,38 @@
+
+name: Desktop CI
+
+on:
+  push:
+    paths:
+      - "apps/desktop/**"
+      - ".github/workflows/desktop-ci.yml"
+  pull_request:
+    paths:
+      - "apps/desktop/**"
+      - ".github/workflows/desktop-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore desktop dependencies
+        run: dotnet restore apps/desktop/ExileCompanion.Desktop.slnx
+
+      - name: Build desktop application
+        run: dotnet build apps/desktop/ExileCompanion.Desktop.slnx --configuration Release --no-restore

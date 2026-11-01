@@ -10,9 +10,6 @@ npm-debug.log*
 .env.*
 !.env.example
 
-# Copilot
-.github/copilot-instructions.md
-
 # ==========================================
 # WPF / .NET Desktop
 # ==========================================

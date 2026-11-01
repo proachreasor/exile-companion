@@ -1,7 +1,11 @@
-﻿using ExileCompanion.Desktop.Services;
+﻿using ExileCompanion.Desktop.Models;
+using ExileCompanion.Desktop.Repositories;
+using ExileCompanion.Desktop.Services;
 using ExileCompanion.Desktop.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 using System.Windows;
+using System.Diagnostics;
 
 namespace ExileCompanion.Desktop
 {
@@ -12,26 +16,45 @@ namespace ExileCompanion.Desktop
     {
         private ServiceProvider? _serviceProvider;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
             var services = new ServiceCollection();
 
-            //shared application data
+            // Shared application data
             services.AddSingleton<CharacterService>();
 
-            //view models
+            // ViewModels
             services.AddSingleton<DashboardViewModel>();
             services.AddSingleton<CharactersViewModel>();
             services.AddSingleton<MainViewModel>();
 
-            //main application window
+            // Main application window
             services.AddSingleton<MainWindow>();
 
+            // Register the repository BEFORE building the provider
+            services.AddSingleton<ICharacterRepository>(provider =>
+            {
+                string filePath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "character-fixtures.json");
+
+                return new LocalCharacterRepository(filePath);
+            });
+
+            // Build the container after all registrations
             _serviceProvider = services.BuildServiceProvider();
 
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            var characterService = _serviceProvider.GetRequiredService<CharacterService>();
+
+            await characterService.LoadCharactersAsync(GameId.Poe1);
+
+            var repository = _serviceProvider.GetRequiredService<ICharacterRepository>();
+
+
+            var mainWindow = _serviceProvider
+                .GetRequiredService<MainWindow>();
 
             MainWindow = mainWindow;
             mainWindow.Show();
@@ -42,6 +65,7 @@ namespace ExileCompanion.Desktop
             _serviceProvider?.Dispose();
             base.OnExit(e);
         }
+
 
     }
 

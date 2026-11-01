@@ -1,25 +1,38 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿
 using ExileCompanion.Desktop.Models;
-using System;
-using System.Collections.Generic;
+using ExileCompanion.Desktop.Repositories;
 using System.Collections.ObjectModel;
-using System.Text;
 
-namespace ExileCompanion.Desktop.Services
+namespace ExileCompanion.Desktop.Services;
+
+public sealed class CharacterService
 {
-    public sealed class CharacterService
+    private readonly ICharacterRepository _repository;
+
+    public ObservableCollection<Character> Characters { get; } = new();
+
+    public CharacterService(ICharacterRepository repository)
     {
-        public ObservableCollection<CharacterSummary> Characters { get; } = new();
+        _repository = repository;
+    }
 
-        public CharacterService()
-        {
-            Characters.Add(new CharacterSummary(
-                "ExileWarrior", "Marauder", 82));
-            Characters.Add(new CharacterSummary(
-                "ShadowHunter", "Shadow", 74));
-        }
+    public void AddCharacter(Character character)
+    {
+        Characters.Add(character);
+    }
 
-        public void AddCharacter(CharacterSummary character)
+    public async Task LoadCharactersAsync(
+        GameId gameId,
+        CancellationToken cancellationToken = default)
+    {
+        // TODO: Implement repository loading.
+        var retrievedCharacters = await _repository.GetCharactersAsync(gameId, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        Characters.Clear();
+
+        foreach (var character in retrievedCharacters)
         {
             Characters.Add(character);
         }

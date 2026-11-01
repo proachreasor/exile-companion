@@ -8,6 +8,7 @@
         MinWidth="600"
         MinHeight="450">
 
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="220"/>

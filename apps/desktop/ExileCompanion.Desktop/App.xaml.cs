@@ -24,10 +24,12 @@ namespace ExileCompanion.Desktop
 
             // Shared application data
             services.AddSingleton<CharacterService>();
+            services.AddSingleton<FavoritesService>();
 
             // ViewModels
             services.AddSingleton<DashboardViewModel>();
             services.AddSingleton<CharactersViewModel>();
+            services.AddSingleton<CharacterDetailViewModel>();
             services.AddSingleton<MainViewModel>();
 
             // Main application window
@@ -51,6 +53,10 @@ namespace ExileCompanion.Desktop
             await characterService.LoadCharactersAsync(GameId.Poe1);
 
             var repository = _serviceProvider.GetRequiredService<ICharacterRepository>();
+
+            var favoritesService = _serviceProvider.GetRequiredService<FavoritesService>();
+
+            await favoritesService.LoadAsync();
 
 
             var mainWindow = _serviceProvider

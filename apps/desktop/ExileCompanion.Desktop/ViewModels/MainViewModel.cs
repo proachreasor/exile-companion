@@ -17,6 +17,7 @@ public partial class MainViewModel : ObservableObject
 
     private readonly DashboardViewModel _dashboardViewModel;
     private readonly CharactersViewModel _charactersViewModel;
+    private readonly CharacterDetailViewModel _characterDetailViewModel;
 
     private readonly CharacterService _characterService;
     private CancellationTokenSource? _gameChangeCancellation;
@@ -33,10 +34,13 @@ public partial class MainViewModel : ObservableObject
     public MainViewModel(
         DashboardViewModel dashboardViewModel,
         CharactersViewModel charactersViewModel,
+        CharacterDetailViewModel characterDetailViewModel,
         CharacterService characterService)
     {
         _dashboardViewModel = dashboardViewModel;
         _charactersViewModel = charactersViewModel;
+        _charactersViewModel.CharacterSelected = NavigateToCharacterDetail;
+        _characterDetailViewModel = characterDetailViewModel;
         _characterService = characterService;
         CurrentViewModel = _dashboardViewModel;
     }
@@ -50,10 +54,18 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void NavigateToCharacters()
     {
+        _charactersViewModel.SelectedCharacter = null;
         CurrentViewModel = _charactersViewModel;
     }
 
+    private void NavigateToCharacterDetail(Character character)
+    {
+        _characterDetailViewModel.LoadCharacter(character);
+        CurrentViewModel = _characterDetailViewModel;
+    }
+
     partial void OnSelectedGameChanged(GameId value)
+
     {
         _gameChangeCancellation?.Cancel();
 
@@ -69,15 +81,20 @@ public partial class MainViewModel : ObservableObject
     {
         CancellationToken token = cancellation.Token;
 
-        // TODO:
         try
         {
-            // 1. Load characters for the requested game.
             await _characterService.LoadCharactersAsync(gameId, token);
 
             token.ThrowIfCancellationRequested();
-            // 2. Write a Debug message when loading finishes.
+
             System.Diagnostics.Debug.WriteLine($"Finished loading characters for game: {gameId}");
+
+            if (CurrentViewModel == _characterDetailViewModel)
+            {
+                _characterDetailViewModel.SelectedCharacter = null;
+                _charactersViewModel.SelectedCharacter = null;
+                CurrentViewModel = _charactersViewModel;
+            }
         }
         catch (OperationCanceledException)
             when (token.IsCancellationRequested)

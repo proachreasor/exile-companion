@@ -11,6 +11,8 @@ public sealed class CharacterService
 
     public ObservableCollection<Character> Characters { get; } = new();
 
+    public GameId CurrentGame { get; private set; } = GameId.Poe1;
+
     public CharacterService(ICharacterRepository repository)
     {
         _repository = repository;
@@ -22,11 +24,11 @@ public sealed class CharacterService
     }
 
     public async Task LoadCharactersAsync(
-        GameId gameId,
-        CancellationToken cancellationToken = default)
+    GameId gameId,
+    CancellationToken cancellationToken = default)
     {
-        // TODO: Implement repository loading.
-        var retrievedCharacters = await _repository.GetCharactersAsync(gameId, cancellationToken);
+        var retrievedCharacters =
+            await _repository.GetCharactersAsync(gameId, cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -36,5 +38,7 @@ public sealed class CharacterService
         {
             Characters.Add(character);
         }
+
+        CurrentGame = gameId;
     }
 }

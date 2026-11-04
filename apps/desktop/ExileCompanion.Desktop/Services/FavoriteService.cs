@@ -12,13 +12,14 @@ public sealed class FavoritesService
 
     private readonly SemaphoreSlim _saveLock = new(1, 1);
 
-    public FavoritesService()
+    public FavoritesService(string? filePath = null)
     {
         string directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "ExileCompanion");
 
-        _filePath = Path.Combine(directory, "favorites.json");
+        _filePath = filePath ??
+            Path.Combine(directory, "favorites.json");
     }
 
     public async Task LoadAsync()
@@ -41,6 +42,10 @@ public sealed class FavoritesService
             {
                 FavoriteIds.Add(id);
             }
+        }
+        else
+        {
+            throw new InvalidDataException("Unsupported version.");
         }
     }
 

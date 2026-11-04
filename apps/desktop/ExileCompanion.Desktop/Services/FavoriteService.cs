@@ -5,13 +5,30 @@ using System.IO;
 
 namespace ExileCompanion.Desktop.Services;
 
+/// <summary>
+/// Manages favorite character identifiers and persistence.
+/// </summary>
 public sealed class FavoritesService
 {
+    /// <summary>
+    /// Gets the in-memory list of favorite character IDs.
+    /// </summary>
     public ObservableCollection<string> FavoriteIds { get; } = new();
+
+    /// <summary>
+    /// The file path used to persist favorite data.
+    /// </summary>
     private readonly string _filePath;
 
+    /// <summary>
+    /// Synchronizes concurrent save operations.
+    /// </summary>
     private readonly SemaphoreSlim _saveLock = new(1, 1);
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FavoritesService"/> class.
+    /// </summary>
+    /// <param name="filePath">An optional path to the favorites file.</param>
     public FavoritesService(string? filePath = null)
     {
         string directory = Path.Combine(
@@ -22,6 +39,9 @@ public sealed class FavoritesService
             Path.Combine(directory, "favorites.json");
     }
 
+    /// <summary>
+    /// Loads favorite identifiers from persistent storage.
+    /// </summary>
     public async Task LoadAsync()
     {
         if (!File.Exists(_filePath))
@@ -49,6 +69,9 @@ public sealed class FavoritesService
         }
     }
 
+    /// <summary>
+    /// Saves favorite identifiers to persistent storage.
+    /// </summary>
     public async Task SaveAsync()
     {
         await _saveLock.WaitAsync();
@@ -92,11 +115,20 @@ public sealed class FavoritesService
         }
     }
 
+    /// <summary>
+    /// Determines whether a character is currently marked as favorite.
+    /// </summary>
+    /// <param name="character">The character to check.</param>
+    /// <returns><see langword="true"/> if the character is a favorite; otherwise, <see langword="false"/>.</returns>
     public bool IsFavorite(Character character)
     {
         return FavoriteIds.Contains(character.Id);
     }
 
+    /// <summary>
+    /// Toggles the favorite state for a character.
+    /// </summary>
+    /// <param name="character">The character whose favorite state will be toggled.</param>
     public void ToggleFavorite(Character character)
     {
         // TODO:

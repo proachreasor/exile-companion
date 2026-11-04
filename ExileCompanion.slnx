@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/desktop/">
+    <Project Path="apps/desktop/ExileCompanion.Desktop.Tests/ExileCompanion.Desktop.Tests.csproj" />
+    <Project Path="apps/desktop/ExileCompanion.Desktop/ExileCompanion.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/Repository/">
+    <File Path=".github/copilot-instructions.md" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/desktop-ci.yml" />
+  </Folder>
+</Solution>

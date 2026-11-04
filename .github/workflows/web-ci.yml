@@ -2,7 +2,28 @@ name: Web CI
 
 on:
   push:
+    paths:
+      - "apps/web/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - ".npmrc"
+      - ".nvmrc"
+      - ".github/workflows/web-ci.yml"
+
   pull_request:
+    paths:
+      - "apps/web/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - ".npmrc"
+      - ".nvmrc"
+      - ".github/workflows/web-ci.yml"
 
 permissions:
   contents: read

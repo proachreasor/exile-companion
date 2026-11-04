@@ -5,10 +5,33 @@ on:
   push:
     paths:
       - "apps/desktop/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "**/*.sln"
+      - "**/*.slnx"
+      - "**/*.slnf"
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "global.json"
+      - "NuGet.config"
+      - ".editorconfig"
       - ".github/workflows/desktop-ci.yml"
+
   pull_request:
     paths:
       - "apps/desktop/**"
+      - "apps/api/**"
+      - "packages/**"
+      - "**/*.sln"
+      - "**/*.slnx"
+      - "**/*.slnf"
+      - "**/*.csproj"
+      - "**/*.props"
+      - "**/*.targets"
+      - "global.json"
+      - "NuGet.config"
+      - ".editorconfig"
       - ".github/workflows/desktop-ci.yml"
 
 permissions:

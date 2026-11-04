@@ -6,10 +6,20 @@ using ExileCompanion.Desktop.tools.serialization;
 
 namespace ExileCompanion.Desktop.Repositories;
 
+/// <summary>
+/// Loads character data from a local JSON file.
+/// </summary>
 public sealed class LocalCharacterRepository : ICharacterRepository
 {
+    /// <summary>
+    /// The path to the character data file.
+    /// </summary>
     private readonly string _filePath;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LocalCharacterRepository"/> class.
+    /// </summary>
+    /// <param name="filePath">The path to the JSON character file.</param>
     public LocalCharacterRepository(string filePath)
     {
         _filePath = filePath;

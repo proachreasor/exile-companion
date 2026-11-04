@@ -10,32 +10,65 @@ using System.Windows.Data;
 
 namespace ExileCompanion.Desktop.ViewModels
 {
+    /// <summary>
+    /// Represents character list presentation, filtering, and sorting behavior.
+    /// </summary>
     public partial class CharactersViewModel : ObservableObject
     {
+        /// <summary>
+        /// The service used to load and store character data.
+        /// </summary>
         private readonly CharacterService _characterService;
 
+        /// <summary>
+        /// Gets or sets the callback invoked when a character is selected.
+        /// </summary>
         public Action<Character>? CharacterSelected { get; set; }
 
+        /// <summary>
+        /// Gets the character collection.
+        /// </summary>
         public ObservableCollection<Character> Characters => _characterService.Characters;
 
+        /// <summary>
+        /// Backing field for the currently selected character.
+        /// </summary>
         // TODO: Add SelectedCharacter
         [ObservableProperty]
         private Character? _selectedCharacter;
 
+        /// <summary>
+        /// Backing field for the status message shown in the UI.
+        /// </summary>
         // TODO: Add StatusMessage
         [ObservableProperty]
         private string _statusMessage = "Ready";
 
+        /// <summary>
+        /// Gets the filtered view over <see cref="Characters"/>.
+        /// </summary>
         public ICollectionView FilteredCharacters { get; }
 
+        /// <summary>
+        /// Backing field for the current search text.
+        /// </summary>
         [ObservableProperty]
         private string _searchText = string.Empty;
 
+        /// <summary>
+        /// Gets the available class filter options.
+        /// </summary>
         public ObservableCollection<string> AvailableClasses { get; } = new();
 
+        /// <summary>
+        /// Backing field for the selected class filter.
+        /// </summary>
         [ObservableProperty]
         private string _selectedClass = "All Classes";
 
+        /// <summary>
+        /// Gets the available sorting options displayed in the UI.
+        /// </summary>
         public IReadOnlyList<string> SortOptions { get; } =
         [
             "Level (Highest First)",
@@ -44,9 +77,16 @@ namespace ExileCompanion.Desktop.ViewModels
             "Name (Z-A)"
         ];
 
+        /// <summary>
+        /// Backing field for the selected sort option.
+        /// </summary>
         [ObservableProperty]
         private string _selectedSort = "Level (Highest First)";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CharactersViewModel"/> class.
+        /// </summary>
+        /// <param name="characterService">The character service dependency.</param>
         public CharactersViewModel(CharacterService characterService)
         {
             _characterService = characterService;
@@ -65,6 +105,10 @@ namespace ExileCompanion.Desktop.ViewModels
             ApplySorting();
         }
 
+        /// <summary>
+        /// Handles selected character changes.
+        /// </summary>
+        /// <param name="value">The newly selected character.</param>
         partial void OnSelectedCharacterChanged(Character? value)
         {
             if (value is not null)
@@ -73,6 +117,9 @@ namespace ExileCompanion.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Reloads characters from the backing service.
+        /// </summary>
         [RelayCommand]
         private async Task RefreshCharactersAsync()
         {
@@ -99,12 +146,21 @@ namespace ExileCompanion.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Handles selected class changes by refreshing the filtered view.
+        /// </summary>
+        /// <param name="value">The selected class value.</param>
         partial void OnSelectedClassChanged(string value)
         {
             FilteredCharacters.Refresh();
         }
 
 
+        /// <summary>
+        /// Determines whether a list item matches active search and class filters.
+        /// </summary>
+        /// <param name="item">The item to evaluate.</param>
+        /// <returns><see langword="true"/> when the item should be visible; otherwise, <see langword="false"/>.</returns>
         private bool FilterCharacter(object item)
         {
             if (item is not Character character)
@@ -125,11 +181,18 @@ namespace ExileCompanion.Desktop.ViewModels
             return matchesSearch && matchesClass;
         }
 
+        /// <summary>
+        /// Handles search text changes by refreshing the filtered view.
+        /// </summary>
+        /// <param name="value">The updated search text.</param>
         partial void OnSearchTextChanged(string value)
         {
             FilteredCharacters.Refresh();
         }
 
+        /// <summary>
+        /// Rebuilds the available character class options.
+        /// </summary>
         private void UpdateAvailableClasses()
         {
             AvailableClasses.Clear();
@@ -150,6 +213,9 @@ namespace ExileCompanion.Desktop.ViewModels
             SelectedClass = "All Classes";
         }
 
+        /// <summary>
+        /// Applies sort rules to the filtered character view.
+        /// </summary>
         private void ApplySorting()
         {
             FilteredCharacters.SortDescriptions.Clear();
@@ -205,6 +271,10 @@ namespace ExileCompanion.Desktop.ViewModels
             }
         }
 
+        /// <summary>
+        /// Handles selected sort changes by reapplying sort rules.
+        /// </summary>
+        /// <param name="value">The selected sort option.</param>
         partial void OnSelectedSortChanged(string value)
         {
             ApplySorting();

@@ -1,4 +1,9 @@
 <Solution>
+  <Folder Name="/.github/">
+    <File Path="../../../.github/copilot-instructions.md" />
+    <File Path="../../../.github/workflows/ci.yml" />
+    <File Path="../../../.github/workflows/desktop-ci.yml" />
+  </Folder>
   <Project Path="../ExileCompanion.Desktop.Tests/ExileCompanion.Desktop.Tests.csproj" Id="82f26d92-d152-4c93-81ab-eb172ddd23b6" />
   <Project Path="ExileCompanion.Desktop.csproj" />
 </Solution>

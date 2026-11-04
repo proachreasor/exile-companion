@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace ExileCompanion.Desktop.Tests.Services;
 
+
 public class FavoritesServiceTests
 {
     [Fact]

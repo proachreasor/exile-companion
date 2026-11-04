@@ -1,0 +1,31 @@
+﻿<UserControl x:Class="ExileCompanion.Desktop.Views.CharacterDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Margin="24">
+        <TextBlock Text="Character Details"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <TextBlock Text="{Binding SelectedCharacter.Name}"
+                   FontSize="20"/>
+
+        <TextBlock Text="{Binding SelectedCharacter.CharacterClass}"/>
+        <TextBlock Text="{Binding SelectedCharacter.Level, StringFormat='Level {0}'}"/>
+        <TextBlock Text="{Binding SelectedCharacter.League}"/>
+        <TextBlock Text="{Binding SelectedCharacter.GameId}"/>
+        <TextBlock Text="{Binding IsFavorite, StringFormat='Favorite: {0}'}"
+           Margin="0,8,0,0"/>
+        <Button Content="Toggle Favorite"
+            Command="{Binding ToggleFavoriteCommand}"
+            Width="160"
+            Height="40"
+            HorizontalAlignment="Left"
+            Margin="0,20,0,0"/>
+        <TextBlock Text="{Binding FavoriteError}"
+           Foreground="OrangeRed"
+           TextWrapping="Wrap"
+           Margin="0,8,0,0"/>
+    </StackPanel>
+</UserControl>

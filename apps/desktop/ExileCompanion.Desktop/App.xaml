@@ -14,5 +14,9 @@
             <views:CharactersView/>
         </DataTemplate>
 
+        <DataTemplate DataType="{x:Type vm:CharacterDetailViewModel}">
+            <views:CharacterDetailView/>
+        </DataTemplate>
+
     </Application.Resources>
 </Application>

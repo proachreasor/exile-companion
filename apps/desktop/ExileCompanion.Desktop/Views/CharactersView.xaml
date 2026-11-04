@@ -9,6 +9,7 @@
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -19,8 +20,34 @@
                     Foreground="#ACBBC8"
                     Margin="0,0,0,16"/>
 
+        <!-- Search Box -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="180"/>
+                <ColumnDefinition Width="180"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+             Padding="8"
+             Margin="0,0,12,0"
+             ToolTip="Search characters by name or class"/>
+
+            <ComboBox Grid.Column="1"
+              ItemsSource="{Binding AvailableClasses}"
+              SelectedItem="{Binding SelectedClass, Mode=TwoWay}"
+              Margin="0,0,12,0"
+              Padding="8"/>
+
+            <ComboBox Grid.Column="2"
+              ItemsSource="{Binding SortOptions}"
+              SelectedItem="{Binding SelectedSort, Mode=TwoWay}"
+              Padding="8"/>              
+        </Grid>
+
         <!-- Character List-->
-        <ListBox Grid.Row="1"
+        <ListBox Grid.Row="2"
          ItemsSource="{Binding Characters}"
          SelectedItem="{Binding SelectedCharacter, Mode=TwoWay}"
          Background="#253143"
@@ -51,7 +78,7 @@
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <StackPanel Grid.Row="2">
+        <StackPanel Grid.Row="3">
             <TextBlock Text="Selected Character"
                Foreground="#F2D39C"
                FontSize="16"
@@ -64,7 +91,7 @@
         </StackPanel>
 
         <!-- Refresh Button -->
-        <Button Grid.Row="3"
+        <Button Grid.Row="4"
          Content="Refresh Characters"
          Command="{Binding RefreshCharactersCommand}"
          Height="40"

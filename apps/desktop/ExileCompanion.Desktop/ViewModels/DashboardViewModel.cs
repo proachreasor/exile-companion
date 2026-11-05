@@ -23,7 +23,7 @@ public partial class DashboardViewModel : ObservableObject
         _characterService = characterService;
 
 
-        // TODO: Subscribe to collection changes
+        // Both statistics are computed from the collection, so notify the UI whenever it changes.
         _characterService.Characters.CollectionChanged += (_, _) =>
         {
             OnPropertyChanged(nameof(HighestCharacterLevel));
@@ -31,13 +31,11 @@ public partial class DashboardViewModel : ObservableObject
         };
     }
 
-    // TODO: CharacterCount
     /// <summary>
     /// Gets the total number of loaded characters.
     /// </summary>
     public int CharacterCount => _characterService.Characters.Count;
 
-    // TODO: HighestCharacterLevel
     /// <summary>
     /// Gets the highest level among loaded characters.
     /// </summary>

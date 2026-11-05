@@ -16,6 +16,7 @@ namespace ExileCompanion.Desktop
     {
         private ServiceProvider? _serviceProvider;
 
+        // async void is required to override OnStartup; data is loaded before the window is shown.
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -56,7 +57,8 @@ namespace ExileCompanion.Desktop
 
             var favoritesService = _serviceProvider.GetRequiredService<FavoritesService>();
 
-            await favoritesService.LoadAsync();
+            // The repository is passed so legacy (v1) favorites can be migrated to composite keys.
+            await favoritesService.LoadAsync(repository);
 
 
             var mainWindow = _serviceProvider

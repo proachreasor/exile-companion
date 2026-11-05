@@ -5,7 +5,6 @@ using ExileCompanion.Desktop.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.ComponentModel;
 using System.Windows.Data;
 
 namespace ExileCompanion.Desktop.ViewModels
@@ -33,14 +32,12 @@ namespace ExileCompanion.Desktop.ViewModels
         /// <summary>
         /// Backing field for the currently selected character.
         /// </summary>
-        // TODO: Add SelectedCharacter
         [ObservableProperty]
         private Character? _selectedCharacter;
 
         /// <summary>
         /// Backing field for the status message shown in the UI.
         /// </summary>
-        // TODO: Add StatusMessage
         [ObservableProperty]
         private string _statusMessage = "Ready";
 
@@ -134,6 +131,7 @@ namespace ExileCompanion.Desktop.ViewModels
             }
             catch (IOException ex)
             {
+                // Expected load failures are shown in the status bar instead of faulting the command.
                 StatusMessage = $"Error loading characters: {ex.Message}";
             }
             catch (System.Text.Json.JsonException ex)
@@ -171,11 +169,6 @@ namespace ExileCompanion.Desktop.ViewModels
                 character.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                 character.CharacterClass.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
 
-            // TODO:
-            // Create matchesClass:
-            // - true if SelectedClass is "All Classes"
-            // - true if character.CharacterClass matches SelectedClass
-            // - false otherwise
             bool matchesClass = SelectedClass == "All Classes" || character.CharacterClass == SelectedClass;
 
             return matchesSearch && matchesClass;
@@ -198,18 +191,14 @@ namespace ExileCompanion.Desktop.ViewModels
             AvailableClasses.Clear();
             AvailableClasses.Add("All Classes");
 
-            // TODO:
-
-            // 1. Get the distinct CharacterClass values from Characters.
             string[] distinctClasses = Characters.Select(c => c.CharacterClass).Distinct().ToArray();
-            // 2. Sort them alphabetically.
             Array.Sort(distinctClasses, StringComparer.OrdinalIgnoreCase);
-            // 3. Add each class to AvailableClasses.
             foreach (var characterClass in distinctClasses)
             {
                 AvailableClasses.Add(characterClass);
             }
-            // 4. Reset SelectedClass to "All Classes".
+
+            // The previous selection may no longer exist in the rebuilt list, so fall back to no filter.
             SelectedClass = "All Classes";
         }
 
@@ -220,13 +209,11 @@ namespace ExileCompanion.Desktop.ViewModels
         {
             FilteredCharacters.SortDescriptions.Clear();
 
-            // TODO:
-            // 1. Determine which property to sort by.
-            // 2. Determine ascending or descending direction.
-            // 3. Add a SortDescription to FilteredCharacters.
             string propertyName;
             ListSortDirection direction;
 
+            // Map the display label to a sort property and direction; unknown labels
+            // fall back to the default (highest level first).
             switch (SelectedSort)
             {
                 case "Level (Highest First)":
@@ -255,6 +242,7 @@ namespace ExileCompanion.Desktop.ViewModels
                 propertyName,
                 direction));
 
+            // Secondary sort keeps ordering deterministic when the primary values tie.
             if (propertyName == nameof(Character.Level))
             {
                 FilteredCharacters.SortDescriptions.Add(

@@ -55,6 +55,8 @@ public sealed class CharacterService
         var retrievedCharacters =
             await _repository.GetCharactersAsync(gameId, cancellationToken);
 
+        // Check after the fetch but before mutating state: a canceled load must leave
+        // Characters and CurrentGame untouched.
         cancellationToken.ThrowIfCancellationRequested();
 
         Characters.Clear();

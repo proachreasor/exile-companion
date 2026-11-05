@@ -43,7 +43,6 @@ public partial class CharacterDetailViewModel : ObservableObject
     {
         SelectedCharacter = character;
 
-        // TODO: Update IsFavorite using FavoritesService.
         IsFavorite = _favoritesService.IsFavorite(character);
     }
 
@@ -77,6 +76,7 @@ public partial class CharacterDetailViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            // Undo the in-memory toggle so the UI doesn't show a favorite that was never persisted.
             _favoritesService.ToggleFavorite(character);
             IsFavorite = _favoritesService.IsFavorite(character);
             FavoriteError = $"Failed to save favorites: {ex.Message}";

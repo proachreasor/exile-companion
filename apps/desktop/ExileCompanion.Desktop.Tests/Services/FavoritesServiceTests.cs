@@ -1,6 +1,7 @@
 ﻿
 using ExileCompanion.Desktop.Models;
 using ExileCompanion.Desktop.Services;
+using ExileCompanion.Desktop.Tests.Repositories;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -29,10 +30,8 @@ public class FavoritesServiceTests
             50,
             "Standard");
 
-        // TODO:
-        // 1. Toggle the character's favorite state.
         service.ToggleFavorite(character);
-        // 2. Assert that IsFavorite(character) returns true.
+
         Assert.True(service.IsFavorite(character));
     }
 
@@ -50,12 +49,9 @@ public class FavoritesServiceTests
 
         service.ToggleFavorite(character);
 
-        // TODO:
-        // 1. Toggle the character again.
         service.ToggleFavorite(character);
-        // 2. Assert that IsFavorite(character) is false.
+
         Assert.False(service.IsFavorite(character));
-        // 3. Assert that FavoriteIds is empty.
         Assert.Empty(service.FavoriteIds);
     }
 
@@ -82,16 +78,18 @@ public class FavoritesServiceTests
                 50,
                 "Standard");
 
-            // TODO:
-            // 1. Add the character to originalService favorites.
             originalService.ToggleFavorite(character);
-            // 2. Save using originalService.SaveAsync().
             await originalService.SaveAsync();
-            // 3. Load using restoredService.LoadAsync().
+
+            // Saved data must use the current schema version so reloading never needs a migration.
+            string persistedJson = await File.ReadAllTextAsync(filePath);
+            var persistedData = JsonSerializer.Deserialize<FavoritesData>(persistedJson);
+            Assert.NotNull(persistedData);
+            Assert.Equal(2, persistedData.Version);
+
             await restoredService.LoadAsync();
-            // 4. Assert restoredService.IsFavorite(character) is true.
+
             Assert.True(restoredService.IsFavorite(character));
-            // 5. Assert restoredService.FavoriteIds contains exactly one ID.
             Assert.Single(restoredService.FavoriteIds);
         }
         finally
@@ -121,8 +119,6 @@ public class FavoritesServiceTests
 
             var service = new FavoritesService(filePath);
 
-            // TODO:
-            // Assert that LoadAsync throws InvalidDataException.
             await Assert.ThrowsAsync<InvalidDataException>(async () => await service.LoadAsync());
         }
         finally
@@ -152,8 +148,6 @@ public class FavoritesServiceTests
 
             var service = new FavoritesService(filePath);
 
-            // TODO:
-            // Assert that LoadAsync throws InvalidDataException.
             await Assert.ThrowsAsync<JsonException>(async () => await service.LoadAsync());
         }
         finally
@@ -162,5 +156,245 @@ public class FavoritesServiceTests
                 Directory.Delete(directory, recursive: true);
         }
     }
+
+    [Fact]
+    public void Favorites_AreIndependentBetweenGames()
+    {
+        var service = new FavoritesService();
+
+        var poe1Character = new Character(
+            "shared-id", "TestMarauder", GameId.Poe1,
+            "Marauder", 50, "Standard");
+
+        var poe2Character = new Character(
+            "shared-id", "TestWarrior", GameId.Poe2,
+            "Warrior", 40, "Standard");
+
+        service.ToggleFavorite(poe1Character);
+
+        Assert.True(service.IsFavorite(poe1Character));
+
+        // Same ID in a different game must not be treated as a favorite.
+        Assert.False(service.IsFavorite(poe2Character));
+    }
+
+
+    [Fact]
+    public async Task LoadAsync_MigratesVersion1Favorites()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            "ExileCompanionTests",
+            Guid.NewGuid().ToString());
+
+        string filePath = Path.Combine(directory, "favorites.json");
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+
+            await File.WriteAllTextAsync(filePath, """
+        {
+            "Version": 1,
+            "FavoriteIds": ["poe1-1", "poe2-1"]
+        }
+        """);
+
+            var repository = new FakeCharacterRepository
+            {
+                Poe1Characters =
+                [
+                    new Character(
+                    "poe1-1", "Marauder", GameId.Poe1,
+                    "Marauder", 50, "Standard")
+                ],
+                Poe2Characters =
+                [
+                    new Character(
+                    "poe2-1", "Warrior", GameId.Poe2,
+                    "Warrior", 40, "Standard")
+                ]
+            };
+
+            var service = new FavoritesService(filePath);
+
+            // Version 1 stores bare IDs; loading migrates them to GameId-prefixed keys.
+            await service.LoadAsync(repository);
+            Assert.Contains("Poe1:poe1-1", service.FavoriteIds);
+            Assert.Contains("Poe2:poe2-1", service.FavoriteIds);
+            Assert.Equal(2, service.FavoriteIds.Count);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task LoadAsync_ThrowsWhenVersion1IdIsMissing()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            "ExileCompanionTests",
+            Guid.NewGuid().ToString());
+
+        string filePath = Path.Combine(directory, "favorites.json");
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+
+            await File.WriteAllTextAsync(filePath, """
+        {
+            "Version": 1,
+            "FavoriteIds": ["poe1-3"]
+        }
+        """);
+
+            var repository = new FakeCharacterRepository
+            {
+                Poe1Characters =
+                [
+                    new Character(
+                    "poe1-1", "Marauder", GameId.Poe1,
+                    "Marauder", 50, "Standard")
+                ],
+                Poe2Characters =
+                [
+                    new Character(
+                    "poe2-1", "Warrior", GameId.Poe2,
+                    "Warrior", 40, "Standard")
+                ]
+            };
+
+            var service = new FavoritesService(filePath);
+
+            // An unresolvable ID must fail the load and leave the original v1 file untouched.
+            await Assert.ThrowsAsync<InvalidDataException>(() => service.LoadAsync(repository));
+
+            Assert.Empty(service.FavoriteIds);
+
+            string savedJson = await File.ReadAllTextAsync(filePath);
+            Assert.Contains("\"Version\": 1", savedJson);
+            Assert.Contains("poe1-3", savedJson);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+
+    [Fact]
+    public async Task LoadAsync_ThrowsWhenVersion1IdIsAmbiguous()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            "ExileCompanionTests",
+            Guid.NewGuid().ToString());
+
+        string filePath = Path.Combine(directory, "favorites.json");
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+
+            await File.WriteAllTextAsync(filePath, """
+        {
+            "Version": 1,
+            "FavoriteIds": ["poe2-1"]
+        }
+        """);
+
+            var repository = new FakeCharacterRepository
+            {
+                Poe1Characters =
+                [
+                    new Character(
+                    "poe2-1", "Marauder", GameId.Poe1,
+                    "Marauder", 50, "Standard")
+                ],
+                Poe2Characters =
+                [
+                    new Character(
+                    "poe2-1", "Warrior", GameId.Poe2,
+                    "Warrior", 40, "Standard")
+                ]
+            };
+
+            var service = new FavoritesService(filePath);
+
+            // An ID present in both games is ambiguous; it must fail rather than guess.
+            await Assert.ThrowsAsync<InvalidDataException>( () => service.LoadAsync(repository));
+
+            Assert.Empty(service.FavoriteIds);
+
+            string savedJson = await File.ReadAllTextAsync(filePath);
+            Assert.Contains("\"Version\": 1", savedJson);
+            Assert.Contains("poe2-1", savedJson);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+
+    [Fact]
+    public async Task LoadAsync_PreservesPreviousStateWhenMigrationSaveFails()
+    {
+        string directory = Path.Combine(
+            Path.GetTempPath(),
+            "ExileCompanionTests",
+            Guid.NewGuid().ToString());
+
+        string filePath = Path.Combine(directory, "favorites.json");
+
+        try
+        {
+            Directory.CreateDirectory(directory);
+
+            string originalJson = """
+            {"Version":1,"FavoriteIds":["poe1-1"]}
+            """;
+
+            await File.WriteAllTextAsync(filePath, originalJson);
+
+            var repository = new FakeCharacterRepository
+            {
+                Poe1Characters =
+                [
+                    new Character(
+                    "poe1-1", "TestMarauder",
+                    GameId.Poe1, "Marauder", 50, "Standard")
+                ]
+            };
+
+            var service = new FavoritesService(
+                filePath,
+                beforeSave: () => throw new IOException("Simulated save failure"));
+
+            // Establish an existing in-memory favorite.
+            service.FavoriteIds.Add("Poe2:previous");
+
+            // The migration re-save fails, so the in-memory state and the v1 file must both be unchanged.
+            await Assert.ThrowsAsync<IOException>(() => service.LoadAsync(repository));
+
+            Assert.Single(service.FavoriteIds);
+
+            string savedJson = await File.ReadAllTextAsync(filePath);
+            Assert.Equal(originalJson, savedJson);
+        }
+        finally
+        {
+            if (Directory.Exists(directory))
+                Directory.Delete(directory, recursive: true);
+        }
+    }
+
+
 }
 

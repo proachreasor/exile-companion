@@ -126,6 +126,7 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedGameChanged(GameId value)
 
     {
+        // Cancel any in-flight load so a slower, older request can't overwrite the newer game's characters.
         _gameChangeCancellation?.Cancel();
 
         GameLoadingError = string.Empty;
@@ -133,6 +134,7 @@ public partial class MainViewModel : ObservableObject
         var cancellation = new CancellationTokenSource();
         _gameChangeCancellation = cancellation;
 
+        // Property-changed handlers can't be async; failures are reported through GameLoadingError.
         _ = ChangeGameAsync(value, cancellation);
     }
 
@@ -149,9 +151,8 @@ public partial class MainViewModel : ObservableObject
         {
             await _characterService.LoadCharactersAsync(gameId, token);
 
+            // Don't touch navigation state if a newer game selection superseded this load.
             token.ThrowIfCancellationRequested();
-
-            System.Diagnostics.Debug.WriteLine($"Finished loading characters for game: {gameId}");
 
             if (CurrentViewModel == _characterDetailViewModel)
             {
@@ -167,6 +168,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            // Only report errors for the latest selection; a superseded load's failure is irrelevant.
             if (!token.IsCancellationRequested &&
                 ReferenceEquals(_gameChangeCancellation, cancellation))
             {
@@ -175,6 +177,7 @@ public partial class MainViewModel : ObservableObject
         }
         finally
         {
+            // Don't clear the field if a newer operation has already replaced this source.
             if (ReferenceEquals(_gameChangeCancellation, cancellation))
             {
                 _gameChangeCancellation = null;

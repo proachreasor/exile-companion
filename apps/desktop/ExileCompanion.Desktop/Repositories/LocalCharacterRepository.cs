@@ -25,17 +25,18 @@ public sealed class LocalCharacterRepository : ICharacterRepository
         _filePath = filePath;
     }
 
-    // <inheritdoc />
+    /// <inheritdoc />
     public async Task<IReadOnlyList<Character>> GetCharactersAsync(
         GameId gameId,
         CancellationToken cancellationToken = default)
     {
-        // Read the JSON data from the file
         string json = await File.ReadAllTextAsync(_filePath,cancellationToken);
 
-        // Deserialize the JSON data into a dictionary where the key is the gameId and the value is a list of characters
+        // The file is keyed by the lowercase game name (for example "poe1"), so one file serves every game.
         var data = JsonSerializer.Deserialize<Dictionary<string, List<Character>>>(json, CharacterJsonOptions.Default);
 
+        // A missing game or null list means "no characters" rather than an error;
+        // a missing file or malformed JSON still throws above.
         if(data == null || !data.TryGetValue(gameId.ToString().ToLowerInvariant(), out var characters) ||
         characters == null)
         {

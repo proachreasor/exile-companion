@@ -8,7 +8,7 @@ public sealed class FavoritesData
     /// <summary>
     /// Gets or sets the schema version for the favorites payload.
     /// </summary>
-    public int Version { get; set; } = 1;
+    public int Version { get; set; } = 2;
 
     /// <summary>
     /// Gets or sets the list of favorite character identifiers.
